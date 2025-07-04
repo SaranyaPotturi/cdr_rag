@@ -40,7 +40,6 @@
     .chart-card-yellow { border-top: 6px solid #f1c40f; }
     .chart-card-blue { border-top: 6px solid #457b9d; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     function scrollToAnalytics() {
       const element = document.getElementById('analytics');
@@ -58,9 +57,8 @@
           body: JSON.stringify({ query: query })
         });
         const data = await response.json();
-        let html = '';
         if (data.llm_summary || (data.top_snippets && data.top_snippets.length > 0)) {
-          html += `<div class=\"fade-in mt-6 p-6 bg-white rounded-2xl shadow-xl text-gray-900 text-lg border-l-8 border-[#e63946] relative\">`;
+          let html = `<div class=\"fade-in mt-6 p-6 bg-white rounded-2xl shadow-xl text-gray-900 text-lg border-l-8 border-[#e63946] relative\">`;
           if (data.llm_summary) {
             html += `<div><strong>LLM Summary:</strong> ${data.llm_summary}</div>`;
           }
@@ -75,20 +73,11 @@
             html += `<div class=\"mt-2 text-sm text-gray-600\"><strong>Explanation:</strong> ${data.explanation}</div>`;
           }
           html += `</div>`;
+          answerBox.innerHTML = html;
         } else if (data.explanation) {
-          html += `<div class=\"fade-in mt-6 p-6 bg-white rounded-2xl shadow-xl text-gray-900 text-lg border-l-8 border-[#e63946]\"><div class=\"mt-2 text-sm text-gray-600\"><strong>Explanation:</strong> ${data.explanation}</div></div>`;
+          answerBox.innerHTML = `<div class=\"fade-in mt-6 p-6 bg-white rounded-2xl shadow-xl text-gray-900 text-lg border-l-8 border-[#e63946]\"><div class=\"mt-2 text-sm text-gray-600\"><strong>Explanation:</strong> ${data.explanation}</div></div>`;
         } else {
-          html += `<div class=\"fade-in text-red-600 mt-4\">No answer returned from the RAG pipeline.</div>`;
-        }
-        // Dynamic chart rendering
-        if (data.chart_data) {
-          html += `<div class=\"mt-8\"><canvas id=\"dynamicChart\" height=\"320\"></canvas></div>`;
-        }
-        answerBox.innerHTML = html;
-        // Render chart if chart_data present
-        if (data.chart_data) {
-          const ctx = document.getElementById('dynamicChart').getContext('2d');
-          new Chart(ctx, data.chart_data);
+          answerBox.innerHTML = `<div class=\"fade-in text-red-600 mt-4\">No answer returned from the RAG pipeline.</div>`;
         }
         if (data.images) {
           document.querySelector('img[alt="Total Call Duration"]').src = data.images.chart1;
