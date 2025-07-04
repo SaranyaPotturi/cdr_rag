@@ -1,0 +1,83 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+
+body {
+  background-color: #f4f4f4;
+}
+
+.section {
+  padding: 40px 20px;
+}
+
+/* Navbar */
+.navbar {
+  background-color: #333;
+  color: #fff;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.circle-icon {
+  background-color: #555;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 30px;
+  font-weight: bold;
+}
+
+/* Analytics Content */
+.analytics-content {
+  margin: 30px 0;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 400px;
+}
+
+.analytics-content label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.analytics-content select {
+  padding: 6px;
+  border-radius: 4px;
+}
+
+/* Scroll Arrow */
+.scroll-down {
+  text-align: center;
+  font-size: 2rem;
+  color: #888;
+  margin-top: 20px;
+}
+
+/* Cards Section */
+.cards-section h2 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  padding: 0 10px;
+}
+
+.card {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}

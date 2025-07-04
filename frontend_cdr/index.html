@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CAS RECON AI Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    function scrollToAnalytics() {
+      const element = document.getElementById('analytics');
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function handleQuery(event) {
+      event.preventDefault(); // Prevent form default
+
+      const query = document.getElementById('queryInput').value;
+      const answerBox = document.getElementById('answerBox');
+      answerBox.innerHTML = "Loading...";
+
+      try {
+        const response = await fetch('http://127.0.0.1:8000/query', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ query: query })
+        });
+
+        const data = await response.json();
+
+        // Updated display logic for new RAG response structure
+        if (data.llm_summary || (data.top_snippets && data.top_snippets.length > 0)) {
+          let html = `<div class="mt-6 p-4 bg-white rounded shadow text-gray-800 text-lg border-l-4 border-[#ec1c3b]">`;
+          if (data.llm_summary) {
+            html += `<div><strong>LLM Summary:</strong> ${data.llm_summary}</div>`;
+          }
+          if (data.top_snippets && data.top_snippets.length > 0) {
+            html += `<div class="mt-2"><strong>Top Snippets:</strong><ul class="list-disc ml-6">`;
+            data.top_snippets.forEach(snippet => {
+              html += `<li class="mb-1">${snippet}</li>`;
+            });
+            html += `</ul></div>`;
+          }
+          if (data.explanation) {
+            html += `<div class="mt-2 text-sm text-gray-600"><strong>Explanation:</strong> ${data.explanation}</div>`;
+          }
+          html += `</div>`;
+          answerBox.innerHTML = html;
+        } else if (data.explanation) {
+          answerBox.innerHTML = `<div class="mt-6 p-4 bg-white rounded shadow text-gray-800 text-lg border-l-4 border-[#ec1c3b]"><div class="mt-2 text-sm text-gray-600"><strong>Explanation:</strong> ${data.explanation}</div></div>`;
+        } else {
+          answerBox.innerHTML = `<div class="text-red-600 mt-4">No answer returned from the RAG pipeline.</div>`;
+        }
+
+        if (data.images) {
+          document.querySelector('img[alt="Total Call Duration"]').src = data.images.chart1;
+          document.querySelector('img[alt="Calls by Hour"]').src = data.images.chart2;
+          document.querySelector('img[alt="Incoming vs Outgoing"]').src = data.images.chart3;
+          document.querySelector('img[alt="Inbound Call Trends"]').src = data.images.chart4;
+          document.querySelector('img[alt="Outbound Call Trends"]').src = data.images.chart5;
+          document.querySelector('img[alt="Call Trends Per Day"]').src = data.images.chart6;
+        }
+
+        scrollToAnalytics();
+      } catch (error) {
+        answerBox.innerHTML = `<div class="text-red-600 mt-4">Error contacting backend: ${error.message}</div>`;
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-[#f5f8fc] text-[#333] font-sans">
+
+  <!-- Navbar -->
+  <div class="flex justify-center items-center px-10 py-6 bg-white shadow-md border-b border-gray-200">
+    <nav class="flex space-x-20 text-xl font-semibold">
+      <a href="#" class="hover:text-[#ec1c3b] transition duration-300">Home</a>
+      <a href="#analytics" onclick="scrollToAnalytics()" class="hover:text-[#ec1c3b] transition duration-300">Analytics</a>
+    </nav>
+  </div>
+
+  <!-- Welcome Section -->
+  <div class="px-10 py-16 text-center">
+    <h1 class="text-4xl font-bold text-[#002d62] mb-4">Welcome to the Analytics Dashboard</h1>
+    <p class="text-lg text-gray-700 mb-8">Type your query below to generate insights</p>
+
+    <form onsubmit="handleQuery(event)" class="flex justify-center space-x-4 max-w-2xl mx-auto">
+      <input id="queryInput" name="query" placeholder="Ask a question..." class="flex-grow p-3 border rounded shadow-sm" required />
+      <button type="submit" class="bg-[#ec1c3b] text-white px-6 py-3 rounded hover:bg-[#c31630] transition">
+        Submit
+      </button>
+    </form>
+
+    <!-- Answer will show here -->
+    <div id="answerBox" class="mt-6 text-center"></div>
+  </div>
+
+  <!-- Analytics Section -->
+  <div id="analytics" class="px-10 py-12">
+    <h2 class="text-3xl font-bold text-[#002d62] mb-8 text-center">Generated Analytics</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Chart 1 -->
+      <div class="p-6 rounded-xl bg-white shadow-md">
+        <h3 class="font-medium text-[#002d62] mb-2">Total Call Duration Per Device</h3>
+        <img src="chart1.jpeg" alt="Total Call Duration" class="w-full h-auto rounded">
+      </div>
+
+      <!-- Chart 2 -->
+      <div class="p-6 rounded-xl bg-white shadow-md">
+        <h3 class="font-medium text-[#002d62] mb-2">Calls by Hour of Day</h3>
+        <img src="chart2.jpeg" alt="Calls by Hour" class="w-full h-auto rounded">
+      </div>
+
+      <!-- Chart 3 -->
+      <div class="p-6 rounded-xl bg-white shadow-md">
+        <h3 class="font-medium text-[#002d62] mb-2">Incoming vs Outgoing Calls</h3>
+        <img src="chart3.jpeg" alt="Incoming vs Outgoing" class="w-full h-auto rounded">
+      </div>
+
+      <!-- Chart 4 -->
+      <div class="p-6 rounded-xl bg-white shadow-md">
+        <h3 class="font-medium text-[#002d62] mb-2">Inbound Call Trends Per Audio Interface</h3>
+        <img src="chart4.jpeg" alt="Inbound Call Trends" class="w-full h-auto rounded">
+      </div>
+
+      <!-- Chart 5 -->
+      <div class="p-6 rounded-xl bg-white shadow-md">
+        <h3 class="font-medium text-[#002d62] mb-2">Outbound Call Trends Per Audio Interface</h3>
+        <img src="chart5.jpeg" alt="Outbound Call Trends" class="w-full h-auto rounded">
+      </div>
+
+      <!-- Chart 6 -->
+      <div class="p-6 rounded-xl bg-white shadow-md">
+        <h3 class="font-medium text-[#002d62] mb-2">Call Trends Per Day</h3>
+        <img src="chart6.jpeg" alt="Call Trends Per Day" class="w-full h-auto rounded">
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
