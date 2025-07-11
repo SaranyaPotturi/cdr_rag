@@ -40,14 +40,12 @@ async def handle_query(data: QueryRequest):
     print(f"[API] Received query: {query}")
     print("[API] Calling rag_pipeline...")
     answer = rag_pipeline(
-        query,
+        query,  # Pass the correct variable
         df_all_records,
-        documents,
-        metadatas,
         chroma_collection,
         llm_pipeline,
         embedding_model,
-        query_cache
+        metadatas
     )
     print(f"[API] Final answer: {answer}")
     return answer

@@ -81,14 +81,142 @@
           html += `<div class=\"fade-in text-red-600 mt-4\">No answer returned from the RAG pipeline.</div>`;
         }
         // Dynamic chart rendering
-        if (data.chart_data) {
-          html += `<div class=\"mt-8\"><canvas id=\"dynamicChart\" height=\"320\"></canvas></div>`;
+        // Support both chart_data (old sample) and graph_data (RAG backend)
+        if (data.chart_data || data.graph_data) {
+          if (data.graph_data && data.graph_data.type === 'single_value') {
+            html += `<div class=\"mt-8 flex flex-col items-center justify-center\">` +
+              `<div class=\"text-5xl font-extrabold text-[#e63946] mb-2\">${data.graph_data.values[0]}</div>` +
+              `<div class=\"text-lg text-gray-700 mb-4\">${data.graph_data.title || ''}</div>` +
+              `<canvas id=\"dynamicChart\" width=\"420\" height=\"220\" style=\"max-width:100%;\"></canvas></div>`;
+          } else {
+            html += `<div class=\"mt-8 flex justify-center\"><canvas id=\"dynamicChart\" width=\"420\" height=\"220\" style=\"max-width:100%;\"></canvas></div>`;
+          }
         }
         answerBox.innerHTML = html;
-        // Render chart if chart_data present
-        if (data.chart_data) {
+        // Render chart if chart_data or graph_data present
+        if (data.chart_data || data.graph_data) {
           const ctx = document.getElementById('dynamicChart').getContext('2d');
-          new Chart(ctx, data.chart_data);
+          let chartConfig;
+          if (data.chart_data) {
+            chartConfig = data.chart_data;
+          } else if (data.graph_data) {
+            // Convert graph_data to Chart.js config
+            if (data.graph_data.type === 'bar') {
+              chartConfig = {
+                type: 'bar',
+                data: {
+                  labels: data.graph_data.labels,
+                  datasets: [{
+                    label: data.graph_data.title || '',
+                    data: data.graph_data.values,
+                    backgroundColor: '#457b9d',
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  plugins: {
+                    legend: {display: false},
+                    title: {
+                      display: true,
+                      text: data.graph_data.title || 'Bar Chart',
+                      font: {size: 20}
+                    },
+                    tooltip: {enabled: true}
+                  },
+                  scales: {
+                    x: {
+                      title: {
+                        display: true,
+                        text: data.graph_data.xLabel || 'Hour of Day',
+                        font: {size: 16}
+                      },
+                      grid: {display: false},
+                      ticks: {font: {size: 14}}
+                    },
+                    y: {
+                      title: {
+                        display: true,
+                        text: data.graph_data.yLabel || 'Number of Calls',
+                        font: {size: 16}
+                      },
+                      beginAtZero: true,
+                      ticks: {font: {size: 14}},
+                      grid: {display: true}
+                    }
+                  }
+                }
+              };
+            } else if (data.graph_data.type === 'single_value') {
+              chartConfig = {
+                type: 'bar',
+                data: {
+                  labels: data.graph_data.labels,
+                  datasets: [{
+                    label: data.graph_data.title || '',
+                    data: data.graph_data.values,
+                    backgroundColor: '#e63946',
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  plugins: {
+                    legend: {display: false},
+                    title: {
+                      display: true,
+                      text: data.graph_data.title || 'Total',
+                      font: {size: 20}
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: {stepSize: 1, font: {size: 18}},
+                      grid: {display: false},
+                      title: {
+                        display: true,
+                        text: data.graph_data.yLabel || '',
+                        font: {size: 16}
+                      }
+                    },
+                    x: {
+                      grid: {display: false},
+                      ticks: {font: {size: 18}},
+                      title: {
+                        display: true,
+                        text: data.graph_data.xLabel || '',
+                        font: {size: 16}
+                      }
+                    }
+                  }
+                }
+              };
+            } else {
+              // fallback: try pie
+              chartConfig = {
+                type: 'pie',
+                data: {
+                  labels: data.graph_data.labels,
+                  datasets: [{
+                    label: data.graph_data.title || '',
+                    data: data.graph_data.values,
+                    backgroundColor: ['#e63946', '#f1c40f', '#457b9d', '#a8dadc', '#22223b', '#f7b801', '#43aa8b'].slice(0, data.graph_data.labels.length)
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  plugins: {
+                    legend: {display: true},
+                    title: {
+                      display: true,
+                      text: data.graph_data.title || 'Pie Chart',
+                      font: {size: 20}
+                    }
+                  }
+                }
+              };
+            }
+          }
+          new Chart(ctx, chartConfig);
         }
         if (data.images) {
           document.querySelector('img[alt="Total Call Duration"]').src = data.images.chart1;
@@ -98,7 +226,7 @@
           document.querySelector('img[alt="Outbound Call Trends"]').src = data.images.chart5;
           document.querySelector('img[alt="Call Trends Per Day"]').src = data.images.chart6;
         }
-        scrollToAnalytics();
+        //scrollToAnalytics(); // Removed auto-scroll to analytics section
         launchConfetti();
       } catch (error) {
         answerBox.innerHTML = `<div class='fade-in text-red-600 mt-4'>Error contacting backend: ${error.message}</div>`;

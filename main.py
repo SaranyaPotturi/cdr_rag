@@ -14,12 +14,12 @@ from rag_components import (
     SCHEMA_FIELDS,
     ES_DATA_FILE,
     is_meaningless_query,
-    process_query  # <-- import the new unified processor
+    process_query 
 )
 
 # Semantic search function using ChromaDB and embedding model
 # Returns list of (doc, score, metadata)
-def semantic_search_fn_chroma(documents, user_query, chroma_collection, embedding_model):
+def semantic_search_fn_chroma(user_query, chroma_collection, embedding_model):
     query_embedding = embedding_model.encode(user_query).tolist()
     results = chroma_collection.query(
         query_embeddings=[query_embedding],
@@ -32,17 +32,15 @@ def semantic_search_fn_chroma(documents, user_query, chroma_collection, embeddin
     # Lower score = closer match for cosine, so invert for ranking
     return list(zip(docs, [1-s for s in scores], metadatas))
 
-def rag_pipeline(user_query, df_all_records, documents, metadatas, chroma_collection, llm_pipeline, embedding_model, cache=None):
+
+def rag_pipeline(user_query, df_all_records, chroma_collection, llm_pipeline, embedding_model, metadatas, cache=None):
     # Unified entry point: handles semantic, aggregation, and mixed queries
     return process_query(
         user_query=user_query,
         df=df_all_records,
-        documents=documents,
+        documents=None,  # Not used for ChromaDB search
         metadatas=metadatas,
-        llm_pipeline=llm_pipeline,
-        schema_fields=SCHEMA_FIELDS,
-        semantic_search_fn=lambda docs, q: semantic_search_fn_chroma(docs, q, chroma_collection, embedding_model),
-        cache=cache
+        llm_pipeline=llm_pipeline
     )
 
 if __name__ == "__main__":
@@ -61,5 +59,5 @@ if __name__ == "__main__":
         user_input = input("\nEnter your query: ").strip()
         if user_input.lower() in ['exit', 'quit']:
             break
-        response = rag_pipeline(user_input, df_all_records, documents, metadatas, chroma_collection, llm_pipeline, embedding_model)
+        response = rag_pipeline(user_input, df_all_records, chroma_collection, llm_pipeline, embedding_model, metadatas)
         print(f"\nResponse:\n{response}\n{'-'*80}")
